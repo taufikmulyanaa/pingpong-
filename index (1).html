@@ -1,0 +1,2453 @@
+ <!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PingPong+ App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Simple animations */
+        .page {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50">
+
+    <div id="app-container" class="max-w-md mx-auto bg-white min-h-screen flex flex-col">
+        <!-- Main Content Area -->
+        <main id="main-content" class="flex-grow overflow-y-auto pb-20">
+            <!-- Pages will be dynamically injected here -->
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 flex justify-around items-center h-16 z-50">
+            <!-- Navigation items will be dynamically injected here -->
+        </nav>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // =================================================================
+            // 1. COMPREHENSIVE DATABASE & MOCK DATA
+            // =================================================================
+            const db = {
+                currentUser: {
+                    id: 1, 
+                    name: 'Ahmad Supardi', 
+                    age: 28, 
+                    photo: 'https://placehold.co/100x100/F97316/FFFFFF?text=AS',
+                    location: 'Jakarta',
+                    online: true,
+                    elo: 1720,
+                    skill: 'Menengah',
+                    style: 'All-round',
+                    clubId: 1,
+                    clubRole: 'player',
+                    stats: { 
+                        matches: 47, 
+                        wins: 32,
+                        winRate: 68, 
+                        tournaments: 5,
+                        rank: 2,
+                        points: 1720,
+                        monthlyMatches: 12,
+                        avgScore: 3.2,
+                        clubMatches: 8,
+                        clubWins: 6
+                    },
+                    equipment: {
+                        blade: 'Butterfly Viscaria',
+                        rubberFH: 'Dignics 05',
+                        rubberBH: 'Dignics 05'
+                    },
+                    achievements: [
+                        { id: 1, name: '100 Matches', icon: '??', date: '2024-08-15' },
+                        { id: 2, name: 'Win Streak 10', icon: '??', date: '2024-07-20' },
+                        { id: 3, name: 'Tournament Winner', icon: '??', date: '2024-06-10' }
+                    ],
+                    preferences: {
+                        playTime: ['Sore', 'Malam'],
+                        skillRange: ['Pemula', 'Menengah'],
+                        maxDistance: 10
+                    }
+                },
+                
+                // PTM/Club data
+                clubs: [
+                    {
+                        id: 1, name: 'Jakarta PP Club', shortName: 'JPC', city: 'Jakarta', region: 'DKI Jakarta', province: 'DKI Jakarta',
+                        address: 'Jl. Sudirman No. 123, Jakarta Pusat', established: '2015',
+                        logo: 'https://placehold.co/100x100/3B82F6/FFFFFF?text=JPC',
+                        description: 'Klub tenis meja terbesar di Jakarta dengan fasilitas lengkap dan pelatih berpengalaman.',
+                        members: 156, activeMembers: 89, coaches: 8,
+                        facilities: ['12 meja tournament', 'AC', 'Parking', 'Canteen', 'Pro shop'],
+                        photos: [
+                            'https://placehold.co/600x400/3B82F6/FFFFFF?text=Interior+JPC',
+                            'https://placehold.co/600x400/1E40AF/FFFFFF?text=Meja+Tournament', 
+                            'https://placehold.co/600x400/2563EB/FFFFFF?text=Fasilitas+AC',
+                            'https://placehold.co/600x400/1D4ED8/FFFFFF?text=Parking+Area'
+                        ],
+                        achievements: ['Juara Regional 2024', 'Runner-up National 2023'],
+                        contact: { phone: '021-5551234', email: 'info@jakartapc.com', website: 'www.jakartapc.com' },
+                        membership: { monthly: 200000, yearly: 2000000, student: 150000 },
+                        rating: 4.8, reviews: 45, verified: true, teamRanking: 2, recentMatches: 15, winRate: 73
+                    },
+                    {
+                        id: 2, name: 'Bandung Elite Tennis Club', shortName: 'BETC', city: 'Bandung', region: 'Bandung Raya', province: 'Jawa Barat',
+                        address: 'Jl. Asia Afrika No. 88, Bandung', established: '2018',
+                        logo: 'https://placehold.co/100x100/EC4899/FFFFFF?text=BETC',
+                        description: 'Klub eksklusif dengan fokus pada pengembangan pemain elite.',
+                        members: 78, activeMembers: 52, coaches: 5,
+                        facilities: ['8 meja premium', 'AC', 'Fitness center', 'Locker room'],
+                        photos: [
+                            'https://placehold.co/600x400/EC4899/FFFFFF?text=Elite+Interior',
+                            'https://placehold.co/600x400/DB2777/FFFFFF?text=Premium+Tables',
+                            'https://placehold.co/600x400/BE185D/FFFFFF?text=Fitness+Center',
+                            'https://placehold.co/600x400/A21CAF/FFFFFF?text=Locker+Room'
+                        ],
+                        achievements: ['Juara Provinsi 2024', 'Top 3 National 2023'],
+                        contact: { phone: '022-1234567', email: 'contact@bandungelite.com' },
+                        membership: { monthly: 300000, yearly: 3000000 },
+                        rating: 4.7, reviews: 32, verified: true, teamRanking: 1, recentMatches: 12, winRate: 81
+                    },
+                    {
+                        id: 3, name: 'Surabaya Champions Club', shortName: 'SCC', city: 'Surabaya', region: 'Surabaya Raya', province: 'Jawa Timur',
+                        address: 'Jl. Pemuda No. 45, Surabaya', established: '2012',
+                        logo: 'https://placehold.co/100x100/10B981/FFFFFF?text=SCC',
+                        description: 'Klub veteran dengan tradisi juara dan program pengembangan anak muda.',
+                        members: 124, activeMembers: 87, coaches: 6,
+                        facilities: ['10 meja standard', 'AC', 'Youth program', 'Equipment store'],
+                        photos: [
+                            'https://placehold.co/600x400/10B981/FFFFFF?text=Champions+Hall',
+                            'https://placehold.co/600x400/059669/FFFFFF?text=Standard+Tables',
+                            'https://placehold.co/600x400/047857/FFFFFF?text=Youth+Program',
+                            'https://placehold.co/600x400/065F46/FFFFFF?text=Equipment+Store'
+                        ],
+                        achievements: ['5x Regional Champions', 'National Champions 2022'],
+                        contact: { phone: '031-7654321', email: 'info@surabayachampions.id' },
+                        membership: { monthly: 175000, yearly: 1800000, youth: 100000 },
+                        rating: 4.9, reviews: 67, verified: true, teamRanking: 3, recentMatches: 18, winRate: 67
+                    }
+                ],
+                
+                interClubMatches: [
+                    {
+                        id: 1, name: 'Jakarta vs Bandung Championship', homeClub: 1, awayClub: 2,
+                        date: '2025-09-15', time: '14:00', venue: 'GOR Senayan, Jakarta',
+                        format: 'Team Match (5 singles)', status: 'scheduled',
+                        description: 'Pertandingan persahabatan antar klub elit Jakarta dan Bandung',
+                        homeScore: 0, awayScore: 0, prize: 5000000,
+                        participants: {
+                            home: ['Ahmad Supardi', 'Budi Rahman', 'Sarah Tennis', 'Rio Pratama', 'Lisa Chen'],
+                            away: ['David Wong', 'Michael Lee', 'Sari Indah', 'Tony Gunawan', 'Maya Sari']
+                        }
+                    },
+                    {
+                        id: 2, name: 'National Club Championship', homeClub: null, awayClub: null,
+                        date: '2025-10-05', time: '09:00', venue: 'Istora Senayan, Jakarta',
+                        format: 'Multi-club tournament', status: 'registration_open',
+                        description: 'Kejuaraan nasional antar klub tenis meja seluruh Indonesia',
+                        registeredClubs: [1, 2, 3], maxClubs: 16, entryFee: 2000000, prize: 50000000
+                    }
+                ],
+                
+                users: [
+                    { 
+                        id: 2, 
+                        name: 'Budi Rahman', 
+                        age: 32, 
+                        photo: 'https://placehold.co/100x100/3B82F6/FFFFFF?text=BR', 
+                        online: true, 
+                        elo: 1650, 
+                        skill: 'Menengah', 
+                        style: 'Bertahan', 
+                        location: 'Tebet, Jakarta', 
+                        distance: 2.5, 
+                        availability: 'Weekend', 
+                        stats: { matches: 62, wins: 38, winRate: 61, tournaments: 5, clubMatches: 12, clubWins: 8 }, 
+                        rating: 4.5, 
+                        reviews: 10,
+                        lastActive: '5 menit lalu',
+                        clubId: 1,
+                        clubRole: 'player'
+                    },
+                    { 
+                        id: 3, 
+                        name: 'Sarah Tennis', 
+                        age: 25, 
+                        photo: 'https://placehold.co/100x100/EC4899/FFFFFF?text=ST', 
+                        online: false, 
+                        elo: 1580, 
+                        skill: 'Pemula', 
+                        style: 'Menyerang', 
+                        location: 'Kemang, Jakarta', 
+                        distance: 3.1, 
+                        availability: 'Pagi & Sore', 
+                        stats: { matches: 31, wins: 17, winRate: 55, tournaments: 2, clubMatches: 6, clubWins: 4 }, 
+                        rating: 4.9, 
+                        reviews: 22,
+                        lastActive: '1 jam lalu',
+                        clubId: 1,
+                        clubRole: 'player'
+                    },
+                    { 
+                        id: 4, 
+                        name: 'Rio Pratama', 
+                        age: 35, 
+                        photo: 'https://placehold.co/100x100/10B981/FFFFFF?text=RP', 
+                        online: false, 
+                        elo: 1880, 
+                        skill: 'Mahir', 
+                        style: 'Menyerang', 
+                        location: 'Depok', 
+                        distance: 8.5, 
+                        availability: 'Malam', 
+                        stats: { matches: 120, wins: 94, winRate: 78, tournaments: 15, clubMatches: 25, clubWins: 21 }, 
+                        rating: 4.7, 
+                        reviews: 30,
+                        lastActive: '2 jam lalu',
+                        clubId: 2,
+                        clubRole: 'coach'
+                    },
+                    { 
+                        id: 5, 
+                        name: 'Lisa Chen', 
+                        age: 22, 
+                        photo: 'https://placehold.co/100x100/8B5CF6/FFFFFF?text=LC', 
+                        online: true, 
+                        elo: 1420, 
+                        skill: 'Pemula', 
+                        style: 'All-round', 
+                        location: 'BSD, Tangerang', 
+                        distance: 15.2, 
+                        availability: 'Pagi & Siang', 
+                        stats: { matches: 25, wins: 12, winRate: 48, tournaments: 1 }, 
+                        rating: 4.8, 
+                        reviews: 8,
+                        lastActive: 'Online sekarang'
+                    },
+                    { 
+                        id: 6, 
+                        name: 'David Wong', 
+                        age: 40, 
+                        photo: 'https://placehold.co/100x100/F59E0B/FFFFFF?text=DW', 
+                        online: false, 
+                        elo: 1950, 
+                        skill: 'Expert', 
+                        style: 'Menyerang', 
+                        location: 'PIK, Jakarta', 
+                        distance: 12.8, 
+                        availability: 'Malam', 
+                        stats: { matches: 200, wins: 168, winRate: 84, tournaments: 25 }, 
+                        rating: 4.9, 
+                        reviews: 45,
+                        lastActive: '30 menit lalu'
+                    }
+                ],
+                
+                feed: [
+                    { 
+                        id: 1,
+                        type: 'match_report', 
+                        userId: 2, 
+                        time: '2 jam lalu', 
+                        content: 'Menang 3-1 vs Andi! Seru banget match hari ini ??', 
+                        image: 'https://placehold.co/600x400/E5E7EB/6B7280?text=Foto+Pertandingan', 
+                        likes: 12, 
+                        comments: 5,
+                        score: '3-1',
+                        opponent: 'Andi Saputra',
+                        venue: 'GOR Senayan'
+                    },
+                    { 
+                        id: 2,
+                        type: 'event', 
+                        userId: 3, 
+                        time: '5 jam lalu', 
+                        content: 'Ada yang mau main doubles besok sore di GOR Senayan? Butuh 2 orang lagi!', 
+                        location: 'GOR Senayan, Jakarta', 
+                        likes: 8, 
+                        comments: 12,
+                        eventDate: '2025-08-28',
+                        eventTime: '16:00',
+                        maxPlayers: 4,
+                        currentPlayers: 2
+                    },
+                    { 
+                        id: 3,
+                        type: 'achievement', 
+                        userId: 4, 
+                        time: '1 hari lalu', 
+                        content: 'Akhirnya tembus rating 1900 setelah latihan keras! Target selanjutnya 2000!', 
+                        badge: '1900 Club', 
+                        likes: 25, 
+                        comments: 8,
+                        oldRating: 1880,
+                        newRating: 1900
+                    },
+                    {
+                        id: 4, 
+                        type: 'club_match_announce', 
+                        clubId: 1, 
+                        time: '4 jam lalu', 
+                        content: 'Jakarta PP Club vs Bandung Elite - Besok pukul 14:00 di GOR Senayan! Dukung tim kita!', 
+                        matchId: 1, 
+                        likes: 28, 
+                        comments: 15 
+                    },
+                    {
+                        id: 5, 
+                        type: 'club_recruitment', 
+                        clubId: 2, 
+                        time: '6 jam lalu', 
+                        content: 'Bandung Elite membuka pendaftaran member baru! Tersedia program untuk pemula sampai advanced.', 
+                        likes: 15, 
+                        comments: 8 
+                    },
+                    { 
+                        id: 6,
+                        type: 'tournament_announce', 
+                        clubId: 1,
+                        club: 'Jakarta PP Club', 
+                        verified: true, 
+                        time: '2 hari lalu', 
+                        content: 'Turnamen Weekend Cup akan diadakan Sabtu depan. Hadiah total 5 juta rupiah! Segera daftar, slot terbatas.', 
+                        tournamentId: 1, 
+                        likes: 45, 
+                        comments: 18,
+                        prize: 5000000,
+                        deadline: '2025-08-30'
+                    },
+                    { 
+                        id: 7,
+                        type: 'training_tip', 
+                        userId: 6, 
+                        time: '3 hari lalu', 
+                        content: 'Tips latihan forehand loop: fokus pada timing dan posisi kaki. Jangan terburu-buru, kualitas lebih penting dari kecepatan.', 
+                        likes: 18, 
+                        comments: 7,
+                        category: 'Teknik Dasar'
+                    }
+                ],
+                
+                tournaments: [
+                    { 
+                        id: 1, 
+                        name: 'Jakarta Weekend Cup', 
+                        date: '2025-09-07', 
+                        location: 'GOR Senayan', 
+                        category: 'Singles • Menengah', 
+                        fee: 75000, 
+                        participants: 28, 
+                        maxParticipants: 32, 
+                        status: 'Open',
+                        prize: 5000000,
+                        organizer: 'Jakarta PP Club',
+                        description: 'Turnamen mingguan untuk kategori menengah',
+                        rules: ['Best of 5 games', '11 point system', 'Double elimination'],
+                        schedule: [
+                            { round: 'Babak 1', time: '08:00-12:00' },
+                            { round: 'Babak 2', time: '13:00-16:00' },
+                            { round: 'Final', time: '16:30-18:00' }
+                        ],
+                        type: 'individual'
+                    },
+                    { 
+                        id: 2, 
+                        name: 'Kemang Fun Tournament', 
+                        date: '2025-09-15', 
+                        location: 'Pingpong Cafe Kemang', 
+                        category: 'Doubles • Pemula', 
+                        fee: 50000, 
+                        participants: 16, 
+                        maxParticipants: 16, 
+                        status: 'Full',
+                        prize: 2000000,
+                        organizer: 'Kemang Sports Center',
+                        type: 'individual'
+                    },
+                    { 
+                        id: 3, 
+                        name: 'Pro League Championship', 
+                        date: '2025-09-22', 
+                        location: 'Istora Senayan', 
+                        category: 'Singles • Expert', 
+                        fee: 150000, 
+                        participants: 12, 
+                        maxParticipants: 24, 
+                        status: 'Open',
+                        prize: 15000000,
+                        organizer: 'Indonesian Table Tennis Federation',
+                        type: 'individual'
+                    },
+                    { 
+                        id: 4, 
+                        name: 'Inter-Club Championship', 
+                        date: '2025-09-15', 
+                        location: 'Multiple Venues', 
+                        category: 'Team • All Levels', 
+                        fee: 500000, 
+                        participants: 8, 
+                        maxParticipants: 16, 
+                        status: 'Open', 
+                        prize: 25000000, 
+                        type: 'club' 
+                    }
+                ],
+                
+                venues: [
+                    { 
+                        id: 1, 
+                        name: 'GOR Senayan', 
+                        distance: 1.2, 
+                        rating: 4.5, 
+                        reviews: 125, 
+                        tables: 12, 
+                        type: 'Indoor + AC', 
+                        price: 35000,
+                        priceUnit: 'per jam',
+                        photo: 'https://placehold.co/600x400/3B82F6/FFFFFF?text=GOR+Senayan',
+                        facilities: ['AC', 'Parking', 'Canteen', 'Shower'],
+                        openHours: '06:00-22:00',
+                        phone: '021-5551234',
+                        address: 'Jl. Pintu Satu Senayan, Jakarta Pusat'
+                    },
+                    { 
+                        id: 2, 
+                        name: 'Pingpong Cafe Kemang', 
+                        distance: 3.5, 
+                        rating: 4.8, 
+                        reviews: 88, 
+                        tables: 6, 
+                        type: 'Indoor + Cafe', 
+                        price: 50000,
+                        priceUnit: 'per jam',
+                        photo: 'https://placehold.co/600x400/EC4899/FFFFFF?text=Pingpong+Cafe',
+                        facilities: ['AC', 'Cafe', 'WiFi', 'Parking'],
+                        openHours: '10:00-23:00'
+                    },
+                    { 
+                        id: 3, 
+                        name: 'Sudirman Sports Center', 
+                        distance: 5.8, 
+                        rating: 4.2, 
+                        reviews: 67, 
+                        tables: 8, 
+                        type: 'Indoor', 
+                        price: 25000,
+                        priceUnit: 'per jam',
+                        photo: 'https://placehold.co/600x400/10B981/FFFFFF?text=Sports+Center',
+                        facilities: ['Parking', 'Locker', 'Equipment Rental'],
+                        openHours: '07:00-21:00'
+                    }
+                ],
+                
+                marketplace: [
+                    { 
+                        id: 1, 
+                        name: 'Bat Butterfly Timo Boll ALC', 
+                        price: 450000, 
+                        condition: 'Baik', 
+                        location: 'Jaksel, 2.1km', 
+                        photo: 'https://placehold.co/200x200/F97316/FFFFFF?text=Bat', 
+                        sellerId: 2, 
+                        status: 'Tersedia',
+                        category: 'Bat',
+                        brand: 'Butterfly',
+                        postedDate: '2025-08-25',
+                        images: [
+                            'https://placehold.co/600x400/F97316/FFFFFF?text=Foto+1',
+                            'https://placehold.co/600x400/F97316/FFFFFF?text=Foto+2',
+                            'https://placehold.co/600x400/F97316/FFFFFF?text=Foto+3'
+                        ],
+                        description: {
+                            brand: 'Butterfly',
+                            model: 'Timo Boll ALC',
+                            condition: 'Bekas pakai 6 bulan, masih sangat bagus',
+                            notes: 'Goresan kecil di tepi karena pemakaian normal. Karet masih bagus dan lengket. Dijual karena ganti bat baru.',
+                            meetingPoint: 'COD di area Jaksel (Blok M, Senayan, Kemang)',
+                            reason: 'Upgrade ke bat baru'
+                        }
+                    },
+                    { 
+                        id: 2, 
+                        name: 'Sepatu Mizuno Wave Drive 8', 
+                        price: 320000, 
+                        condition: 'Seperti Baru', 
+                        location: 'Jakbar, 4.2km', 
+                        photo: 'https://placehold.co/200x200/3B82F6/FFFFFF?text=Sepatu', 
+                        sellerId: 3, 
+                        status: 'Tersedia',
+                        category: 'Sepatu',
+                        brand: 'Mizuno',
+                        postedDate: '2025-08-24',
+                        images: ['https://placehold.co/600x400/3B82F6/FFFFFF?text=Sepatu+1'],
+                        description: {
+                            brand: 'Mizuno',
+                            model: 'Wave Drive 8',
+                            size: '42',
+                            condition: 'Baru dipakai 3 kali, kondisi 95%',
+                            notes: 'Ternyata ukuran kurang pas untuk kaki saya. Kondisi masih seperti baru, box dan dus lengkap.',
+                            meetingPoint: 'COD di area Jakarta Barat atau bisa kirim via GoSend'
+                        }
+                    },
+                    { 
+                        id: 3, 
+                        name: 'Bola DHS D40+ 1 Box (12 pcs)', 
+                        price: 85000, 
+                        condition: 'Baru', 
+                        location: 'Online/Kirim', 
+                        photo: 'https://placehold.co/200x200/10B981/FFFFFF?text=Bola', 
+                        sellerId: 4, 
+                        status: 'Tersedia',
+                        category: 'Bola',
+                        brand: 'DHS',
+                        postedDate: '2025-08-23',
+                        images: ['https://placehold.co/600x400/10B981/FFFFFF?text=Bola+Box'],
+                        description: {
+                            brand: 'DHS',
+                            model: 'D40+ 3-Star',
+                            condition: 'Baru, segel belum dibuka',
+                            notes: 'Bola resmi ITTF, kualitas terbaik untuk latihan dan kompetisi. Salah beli terlalu banyak.',
+                            meetingPoint: 'Bisa kirim ke seluruh Indonesia atau COD Depok/Jakarta Selatan'
+                        }
+                    },
+                    { 
+                        id: 4, 
+                        name: 'Meja Pingpong Outdoor Kettler', 
+                        price: 4500000, 
+                        condition: 'Baik', 
+                        location: 'Bekasi, 18km', 
+                        photo: 'https://placehold.co/200x200/8B5CF6/FFFFFF?text=Meja', 
+                        sellerId: 5, 
+                        status: 'Tersedia',
+                        category: 'Meja',
+                        brand: 'Kettler',
+                        postedDate: '2025-08-20',
+                        images: ['https://placehold.co/600x400/8B5CF6/FFFFFF?text=Meja+1'],
+                        description: {
+                            brand: 'Kettler',
+                            model: 'Outdoor 5',
+                            condition: 'Pakai 1 tahun, masih bagus',
+                            notes: 'Meja outdoor tahan cuaca, cocok untuk halaman rumah. Dijual karena pindah rumah.',
+                            meetingPoint: 'COD di Bekasi atau Jakarta Timur (dengan biaya transport)'
+                        }
+                    }
+                ],
+                
+                chats: [
+                    { 
+                        id: 1, 
+                        userId: 2, 
+                        unread: 2, 
+                        lastMessage: 'Jadi main besok sore jam 4?', 
+                        time: '17:30',
+                        lastActive: '5 menit lalu'
+                    },
+                    { 
+                        id: 2, 
+                        userId: 3, 
+                        unread: 0, 
+                        lastMessage: 'Terima kasih infonya tentang venue!', 
+                        time: '15:45',
+                        lastActive: '1 jam lalu'
+                    },
+                    { 
+                        id: 3, 
+                        userId: 4, 
+                        unread: 1, 
+                        lastMessage: 'Barangnya masih available?', 
+                        time: '14:20',
+                        lastActive: '2 jam lalu'
+                    },
+                    { 
+                        id: 4, 
+                        userId: 6, 
+                        unread: 0, 
+                        lastMessage: 'Siap, sampai jumpa nanti!', 
+                        time: '12:15',
+                        lastActive: '30 menit lalu'
+                    }
+                ],
+                
+                notifications: [
+                    { id: 1, type: 'match_request', from: 'Budi Rahman', message: 'ingin bermain dengan Anda', time: '10 menit lalu', read: false },
+                    { id: 2, type: 'tournament', message: 'Pendaftaran Jakarta Weekend Cup ditutup dalam 2 hari', time: '1 jam lalu', read: false },
+                    { id: 3, type: 'achievement', message: 'Selamat! Anda mencapai 50 pertandingan', time: '2 jam lalu', read: true }
+                ]
+            };
+
+            // =================================================================
+            // 2. STATE MANAGEMENT
+            // =================================================================
+            const state = {
+                currentPage: 'home',
+                history: [{page: 'home', data: null}],
+                detailData: null,
+                activeMarketplaceItem: null,
+            };
+
+            // =================================================================
+            // 3. RENDER FUNCTIONS
+            // =================================================================
+
+            function renderApp() {
+                const mainContent = document.getElementById('main-content');
+                const bottomNav = document.getElementById('bottom-nav');
+
+                let content = '';
+                switch (state.currentPage) {
+                    case 'home': content = renderHomePage(); break;
+                    case 'discover': content = renderDiscoverPage(); break;
+                    case 'play': content = renderPlayPage(); break;
+                    case 'ptm': content = renderPTMPage(); break;
+                    case 'marketplace': content = renderMarketplacePage(); break;
+                    case 'profile': content = renderProfilePage(db.currentUser); break;
+                    case 'profileDetail': content = renderProfilePage(state.detailData); break;
+                    case 'tournamentDetail': content = renderTournamentDetailPage(state.detailData); break;
+                    case 'marketplaceDetail': content = renderMarketplaceDetailPage(state.detailData); break;
+                    case 'chatConversation': content = renderChatConversationPage(state.detailData); break;
+                    case 'venueDetail': content = renderVenueDetailPage(state.detailData); break;
+                    case 'clubDetail': content = renderClubDetailPage(state.detailData); break;
+                    case 'addClub': content = renderAddClubPage(); break;
+                    case 'interClubMatch': content = renderInterClubMatchPage(state.detailData); break;
+                    default: content = `<div class="p-8 text-center text-gray-500">Halaman tidak ditemukan</div>`;
+                }
+                mainContent.innerHTML = `<div class="page">${content}</div>`;
+                
+                bottomNav.innerHTML = renderBottomNav();
+                addEventListeners();
+            }
+            
+            function renderBottomNav() {
+                const navItems = [
+                    { id: 'home', label: 'Home', icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>` },
+                    { id: 'discover', label: 'Discover', icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>` },
+                    { id: 'play', label: 'Play', icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>` },
+                    { id: 'ptm', label: 'PTM', icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>` },
+                    { id: 'profile', label: 'Profile', icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>` },
+                ];
+                const mainPages = ['home', 'discover', 'play', 'ptm', 'profile'];
+                const activePage = mainPages.includes(state.currentPage) ? state.currentPage : '';
+
+                return navItems.map(item => `
+                    <button data-page="${item.id}" class="nav-btn flex flex-col items-center justify-center w-full text-xs ${activePage === item.id ? 'text-orange-500' : 'text-gray-500'} hover:text-orange-500 transition-colors">
+                        ${item.icon}
+                        <span class="mt-1 font-medium">${item.label}</span>
+                    </button>
+                `).join('');
+            }
+
+            function renderHomePage() {
+                const user = db.currentUser;
+                const myClub = db.clubs.find(c => c.id === user.clubId);
+                const unreadCount = db.notifications.filter(n => !n.read).length;
+                
+                const feedContent = db.feed.map(post => {
+                    const postUser = db.users.find(u => u.id === post.userId);
+                    const postClub = db.clubs.find(c => c.id === post.clubId);
+                    if (!postUser && post.type !== 'tournament_announce' && post.type !== 'club_match_announce' && post.type !== 'club_recruitment') return '';
+                    
+                    let postHtml = '';
+                    switch(post.type) {
+                        case 'match_report':
+                            postHtml = `
+                                <div class="bg-white p-4 border-b border-gray-100">
+                                    <div class="flex items-center mb-3">
+                                        <img src="${postUser.photo}" class="w-10 h-10 rounded-full mr-3">
+                                        <div class="flex-1">
+                                            <p class="font-medium text-gray-900">${postUser.name}</p>
+                                            <p class="text-xs text-gray-500">${post.time}</p>
+                                        </div>
+                                        <div class="text-xs bg-gray-100 px-2 py-1 rounded-full">
+                                            ${post.score}
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-800 mb-3">${post.content}</p>
+                                    <img src="${post.image}" class="w-full h-48 rounded-lg object-cover mb-3">
+                                    <div class="flex items-center justify-between text-sm text-gray-500">
+                                        <div class="flex items-center space-x-4">
+                                            <span>?? ${post.likes}</span>
+                                            <span>?? ${post.comments}</span>
+                                        </div>
+                                        <span class="text-xs">${post.venue}</span>
+                                    </div>
+                                </div>
+                            `;
+                            break;
+                        case 'event':
+                            postHtml = `
+                                <div class="bg-white p-4 border-b border-gray-100">
+                                    <div class="flex items-center mb-3">
+                                        <img src="${postUser.photo}" class="w-10 h-10 rounded-full mr-3">
+                                        <div>
+                                            <p class="font-medium text-gray-900">${postUser.name}</p>
+                                            <p class="text-xs text-gray-500">${post.time}</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-800 mb-3">${post.content}</p>
+                                    <div class="bg-blue-50 p-3 rounded-lg mb-3">
+                                        <div class="flex items-center justify-between">
+                                            <div class="text-sm">
+                                                <p class="font-medium">?? ${post.location}</p>
+                                                <p class="text-gray-600">?? ${post.eventDate} • ${post.eventTime}</p>
+                                            </div>
+                                            <div class="text-xs bg-blue-100 px-2 py-1 rounded-full">
+                                                ${post.currentPlayers}/${post.maxPlayers} pemain
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                            <span>?? ${post.likes}</span>
+                                            <span>?? ${post.comments}</span>
+                                        </div>
+                                        <button class="bg-green-500 text-white text-sm px-4 py-2 rounded-lg font-medium">Join</button>
+                                    </div>
+                                </div>
+                            `;
+                            break;
+                        case 'achievement':
+                            postHtml = `
+                                <div class="bg-white p-4 border-b border-gray-100">
+                                    <div class="flex items-center mb-3">
+                                        <img src="${postUser.photo}" class="w-10 h-10 rounded-full mr-3">
+                                        <div>
+                                            <p class="font-medium text-gray-900">${postUser.name}</p>
+                                            <p class="text-xs text-gray-500">${post.time}</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-800 mb-3">${post.content}</p>
+                                    <div class="bg-yellow-50 p-3 rounded-lg mb-3 border border-yellow-200">
+                                        <div class="flex items-center">
+                                            <span class="text-2xl mr-3">??</span>
+                                            <div>
+                                                <p class="font-medium text-yellow-800">${post.badge}</p>
+                                                <p class="text-sm text-yellow-600">${post.oldRating} ? ${post.newRating} points</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-500">
+                                        <span class="mr-4">?? ${post.likes}</span>
+                                        <span>?? ${post.comments}</span>
+                                    </div>
+                                </div>
+                            `;
+                            break;
+                        case 'club_match_announce':
+                            const match = db.interClubMatches.find(m => m.id === post.matchId);
+                            const homeClub = db.clubs.find(c => c.id === match?.homeClub);
+                            const awayClub = db.clubs.find(c => c.id === match?.awayClub);
+                            postHtml = `
+                                <div class="bg-white p-4 border-b border-gray-100">
+                                    <div class="flex items-center mb-3">
+                                        <img src="${postClub.logo}" class="w-10 h-10 rounded-full mr-3">
+                                        <div>
+                                            <p class="font-medium text-gray-900">${postClub.name} ?</p>
+                                            <p class="text-xs text-gray-500">${post.time}</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-800 mb-3">${post.content}</p>
+                                    <div class="bg-blue-50 p-3 rounded-lg mb-3">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <img src="${homeClub.logo}" class="w-6 h-6 rounded-full mr-1">
+                                                <span class="text-sm font-medium">${homeClub.shortName}</span>
+                                                <span class="mx-2 text-gray-500">vs</span>
+                                                <img src="${awayClub.logo}" class="w-6 h-6 rounded-full mr-1">
+                                                <span class="text-sm font-medium">${awayClub.shortName}</span>
+                                            </div>
+                                            <button data-page="interClubMatch" data-id="${post.matchId}" class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">Detail</button>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-500">
+                                        <span class="mr-4">?? ${post.likes}</span>
+                                        <span>?? ${post.comments}</span>
+                                    </div>
+                                </div>
+                            `;
+                            break;
+                        case 'club_recruitment':
+                            postHtml = `
+                                <div class="bg-white p-4 border-b border-gray-100">
+                                    <div class="flex items-center mb-3">
+                                        <img src="${postClub.logo}" class="w-10 h-10 rounded-full mr-3">
+                                        <div>
+                                            <p class="font-medium text-gray-900">${postClub.name} ?</p>
+                                            <p class="text-xs text-gray-500">${post.time}</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-800 mb-3">${post.content}</p>
+                                    <div class="bg-green-50 p-3 rounded-lg mb-3">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="font-medium text-green-800">Open Recruitment</p>
+                                                <p class="text-sm text-green-600">${postClub.members} current members</p>
+                                            </div>
+                                            <button data-page="clubDetail" data-id="${postClub.id}" class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Join</button>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-500">
+                                        <span class="mr-4">?? ${post.likes}</span>
+                                        <span>?? ${post.comments}</span>
+                                    </div>
+                                </div>
+                            `;
+                            break;
+                        case 'tournament_announce':
+                            postHtml = `
+                                <div class="bg-white p-4 border-b border-gray-100">
+                                    <div class="flex items-center mb-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold mr-3">
+                                            ??
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-900 flex items-center">
+                                                ${post.club} 
+                                                ${post.verified ? '<span class="ml-2 text-blue-500">?</span>' : ''}
+                                            </p>
+                                            <p class="text-xs text-gray-500">${post.time}</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-800 mb-3">${post.content}</p>
+                                    <div class="bg-orange-50 p-3 rounded-lg mb-3 border border-orange-200">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="font-medium text-orange-800">Total Hadiah</p>
+                                                <p class="text-lg font-bold text-orange-600">Rp ${post.prize.toLocaleString('id-ID')}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="text-sm text-orange-600">Deadline</p>
+                                                <p class="font-medium text-orange-800">${post.deadline}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                            <span>?? ${post.likes}</span>
+                                            <span>?? ${post.comments}</span>
+                                        </div>
+                                        <button data-page="tournamentDetail" data-id="${post.tournamentId}" class="bg-blue-500 text-white text-sm px-4 py-2 rounded-lg font-medium">Lihat Detail</button>
+                                    </div>
+                                </div>
+                            `;
+                            break;
+                        case 'training_tip':
+                            postHtml = `
+                                <div class="bg-white p-4 border-b border-gray-100">
+                                    <div class="flex items-center mb-3">
+                                        <img src="${postUser.photo}" class="w-10 h-10 rounded-full mr-3">
+                                        <div>
+                                            <p class="font-medium text-gray-900">${postUser.name}</p>
+                                            <p class="text-xs text-gray-500">${post.time}</p>
+                                        </div>
+                                    </div>
+                                    <div class="bg-green-50 p-3 rounded-lg mb-3 border border-green-200">
+                                        <div class="flex items-center mb-2">
+                                            <span class="text-lg mr-2">??</span>
+                                            <span class="text-sm font-medium text-green-800">${post.category}</span>
+                                        </div>
+                                        <p class="text-gray-800">${post.content}</p>
+                                    </div>
+                                    <div class="flex items-center text-sm text-gray-500">
+                                        <span class="mr-4">?? ${post.likes}</span>
+                                        <span>?? ${post.comments}</span>
+                                    </div>
+                                </div>
+                            `;
+                            break;
+                    }
+                    return postHtml;
+                }).join('');
+
+                return `
+                    <!-- Header -->
+                    <header class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <span class="text-2xl font-bold text-orange-500 mr-2">?</span>
+                                <h1 class="text-xl font-bold text-gray-900">PingPong+</h1>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <button class="relative p-2 text-gray-600 hover:text-orange-500">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5-5V9l-5 5h5z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4a2 2 0 00-2-2H7a2 2 0 00-2 2v2"/>
+                                    </svg>
+                                    ${unreadCount > 0 ? `<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">${unreadCount}</span>` : ''}
+                                </button>
+                                <button class="p-2 text-gray-600 hover:text-orange-500">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>${user.location}</span>
+                            <span class="w-2 h-2 bg-green-500 rounded-full mx-2"></span>
+                            <span class="text-green-600 font-medium">Online</span>
+                            ${myClub ? `
+                            <svg class="w-4 h-4 text-orange-500 ml-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <span class="text-orange-500 font-medium">${myClub.shortName}</span>` : ''}
+                        </div>
+                    </header>
+
+                    <!-- Search Bar -->
+                    <div class="bg-white px-4 pb-4">
+                        <div class="bg-gray-100 rounded-lg px-4 py-3 flex items-center">
+                            <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" placeholder="Cari pemain, venue..." class="bg-transparent text-gray-600 text-sm flex-1 outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Profile Stats Card -->
+                    <div class="bg-white mx-4 rounded-xl border border-gray-200 mb-4 overflow-hidden">
+                        <!-- User Info Header -->
+                        <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-4 text-white">
+                            <div class="flex items-center">
+                                <div class="relative">
+                                    <img src="${user.photo}" class="w-16 h-16 rounded-full border-4 border-white shadow-lg">
+                                    <div class="absolute -bottom-1 -right-1 bg-white rounded-full p-1">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    </div>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <h3 class="text-lg font-bold">${user.name}</h3>
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                        <span class="text-orange-100 font-semibold">${user.elo} Rating</span>
+                                    </div>
+                                    <div class="flex items-center mt-1">
+                                        <span class="bg-white bg-opacity-20 text-xs px-2 py-1 rounded-full">${user.skill}</span>
+                                        <span class="bg-white bg-opacity-20 text-xs px-2 py-1 rounded-full ml-2">${user.style}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Stats Grid -->
+                        <div class="p-4">
+                            <div class="grid grid-cols-4 gap-4">
+                                <div class="text-center">
+                                    <div class="bg-blue-50 rounded-lg p-3">
+                                        <svg class="w-6 h-6 text-blue-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-5-10V3a1 1 0 011-1h1a1 1 0 011 1v1M5 7a4 4 0 118 0v1H5V7z"/>
+                                        </svg>
+                                        <p class="text-xl font-bold text-gray-900">${user.stats.matches}</p>
+                                        <p class="text-xs text-gray-500">Main</p>
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="bg-green-50 rounded-lg p-3">
+                                        <svg class="w-6 h-6 text-green-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <p class="text-xl font-bold text-gray-900">${user.stats.wins}</p>
+                                        <p class="text-xs text-gray-500">Menang</p>
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="bg-yellow-50 rounded-lg p-3">
+                                        <svg class="w-6 h-6 text-yellow-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                        </svg>
+                                        <p class="text-xl font-bold text-gray-900">${user.stats.winRate}%</p>
+                                        <p class="text-xs text-gray-500">Rate</p>
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="bg-orange-50 rounded-lg p-3">
+                                        <svg class="w-6 h-6 text-orange-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                                        </svg>
+                                        <div class="flex items-center justify-center">
+                                            <p class="text-lg font-bold text-gray-900">#${user.stats.rank}</p>
+                                        </div>
+                                        <p class="text-xs text-gray-500">Rank</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feed Section -->
+                    <div class="bg-gray-50">
+                        <div class="px-4 py-3 bg-white border-b border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                                    </svg>
+                                    <h3 class="font-semibold text-gray-900">Feed Komunitas</h3>
+                                </div>
+                                <button class="text-sm text-orange-500 font-medium">Filter</button>
+                            </div>
+                        </div>
+                        ${feedContent}
+                    </div>
+                `;
+            }
+
+            function renderDiscoverPage() {
+                const playersContent = db.users.map(user => {
+                    const userClub = db.clubs.find(c => c.id === user.clubId);
+                    return `
+                        <div data-page="profileDetail" data-id="${user.id}" class="bg-white p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50">
+                            <div class="flex items-center">
+                                <div class="relative mr-4">
+                                    <img src="${user.photo}" class="w-12 h-12 rounded-full">
+                                    ${user.online ? '<span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>' : ''}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <p class="font-medium text-gray-900">${user.name}</p>
+                                        <span class="text-xs text-gray-500">${user.distance}km</span>
+                                    </div>
+                                    <div class="flex items-center mb-2">
+                                        <span class="text-sm text-gray-600 mr-3">? ${user.elo}</span>
+                                        <div class="flex">
+                                            ${Array.from({length: 5}, (_, i) => 
+                                                `<span class="${i < Math.floor(user.rating) ? 'text-yellow-400' : 'text-gray-300'} text-xs">?</span>`
+                                            ).join('')}
+                                        </div>
+                                        <span class="text-xs text-gray-500 ml-2">(${user.reviews})</span>
+                                        ${userClub ? `<span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full ml-2">${userClub.shortName}</span>` : ''}
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">${user.skill}</span>
+                                        <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">${user.style}</span>
+                                        ${user.online ? '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Online</span>' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                                <div class="flex items-center text-xs text-gray-500 space-x-4">
+                                    <span>?? ${user.stats.tournaments}</span>
+                                    <span>?? ${user.stats.winRate}%</span>
+                                    <span>? ${user.availability}</span>
+                                </div>
+                                <button class="bg-orange-500 text-white text-xs px-3 py-1 rounded-lg font-medium">Chat</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <!-- Header -->
+                    <header class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <h1 class="text-xl font-bold text-gray-900">Discover Players</h1>
+                            <div class="flex items-center space-x-2">
+                                <button class="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-lg">Filter</button>
+                                <button class="bg-orange-500 text-white text-sm px-3 py-1 rounded-lg">Map</button>
+                            </div>
+                        </div>
+                        <div class="bg-gray-100 rounded-lg px-4 py-3 flex items-center">
+                            <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" placeholder="Cari berdasarkan skill, lokasi..." class="bg-transparent text-gray-600 text-sm flex-1 outline-none">
+                        </div>
+                    </header>
+
+                    <!-- Filter Chips -->
+                    <div class="bg-white px-4 py-3 border-b border-gray-100">
+                        <div class="flex space-x-2 overflow-x-auto">
+                            <button class="bg-orange-500 text-white text-sm px-3 py-1 rounded-full whitespace-nowrap">Terdekat</button>
+                            <button class="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full whitespace-nowrap">Online</button>
+                            <button class="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full whitespace-nowrap">Pemula</button>
+                            <button class="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full whitespace-nowrap">Menengah</button>
+                            <button class="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full whitespace-nowrap">Mahir</button>
+                        </div>
+                    </div>
+
+                    <!-- Players List -->
+                    <div class="bg-gray-50">
+                        <div class="px-4 py-3 bg-white border-b border-gray-100">
+                            <h3 class="font-semibold text-gray-900">Pemain Terdekat (${db.users.length} ditemukan)</h3>
+                        </div>
+                        ${playersContent}
+                    </div>
+                `;
+            }
+            
+            function renderPlayPage() {
+                const tournamentsContent = db.tournaments.slice(0, 3).map(t => `
+                    <div data-page="tournamentDetail" data-id="${t.id}" class="bg-white p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <h3 class="font-medium text-gray-900 mb-1">${t.name}</h3>
+                                <div class="space-y-1 text-sm text-gray-600">
+                                    <p>?? ${t.date}</p>
+                                    <p>?? ${t.location}</p>
+                                    <p>?? Rp ${t.prize.toLocaleString('id-ID')}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">${t.category}</span>
+                                <p class="text-xs text-gray-500 mt-2">?? ${t.participants}/${t.maxParticipants}</p>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                            <div class="bg-orange-500 h-2 rounded-full" style="width: ${(t.participants / t.maxParticipants * 100)}%"></div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-900">Rp ${t.fee.toLocaleString('id-ID')}</span>
+                            <button class="px-4 py-2 ${t.status === 'Full' ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'} text-white text-sm rounded-lg font-medium">
+                                ${t.status === 'Full' ? 'Penuh' : 'Daftar'}
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+                const venuesContent = db.venues.slice(0, 3).map(venue => `
+                    <div data-page="venueDetail" data-id="${venue.id}" class="bg-white p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50">
+                        <div class="flex">
+                            <img src="${venue.photo}" class="w-16 h-16 rounded-lg object-cover mr-3">
+                            <div class="flex-1">
+                                <div class="flex items-start justify-between mb-1">
+                                    <h4 class="font-medium text-gray-900">${venue.name}</h4>
+                                    <span class="text-sm text-gray-600">${venue.distance}km</span>
+                                </div>
+                                <div class="flex items-center mb-1">
+                                    <div class="flex text-yellow-400 text-sm mr-2">
+                                        ${Array.from({length: 5}, (_, i) => 
+                                            `<span class="${i < Math.floor(venue.rating) ? 'text-yellow-400' : 'text-gray-300'}">?</span>`
+                                        ).join('')}
+                                    </div>
+                                    <span class="text-xs text-gray-500">(${venue.reviews})</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">${venue.tables} meja • ${venue.type}</span>
+                                    <span class="text-sm font-medium text-orange-600">Rp ${venue.price.toLocaleString('id-ID')}/jam</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                    <!-- Header -->
+                    <header class="bg-white p-4 border-b border-gray-100">
+                        <h1 class="text-xl font-bold text-gray-900 mb-4">Play Hub</h1>
+                        <div class="bg-gray-100 rounded-lg px-4 py-3 flex items-center">
+                            <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" placeholder="Cari turnamen, venue..." class="bg-transparent text-gray-600 text-sm flex-1 outline-none">
+                        </div>
+                    </header>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-900 mb-3">Aksi Cepat</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button class="bg-blue-50 p-4 rounded-lg text-center hover:bg-blue-100">
+                                <svg class="w-8 h-8 text-blue-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-5-10V3a1 1 0 011-1h1a1 1 0 011 1v1M5 7a4 4 0 118 0v1H5V7z"/>
+                                </svg>
+                                <p class="font-medium text-gray-900 text-sm">Cari Lawan</p>
+                                <p class="text-xs text-gray-600">Match sekarang</p>
+                            </button>
+                            <button class="bg-green-50 p-4 rounded-lg text-center hover:bg-green-100">
+                                <svg class="w-8 h-8 text-green-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                <p class="font-medium text-gray-900 text-sm">Book Venue</p>
+                                <p class="text-xs text-gray-600">Pesan lapangan</p>
+                            </button>
+                            <button class="bg-orange-50 p-4 rounded-lg text-center hover:bg-orange-100">
+                                <svg class="w-8 h-8 text-orange-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                                </svg>
+                                <p class="font-medium text-gray-900 text-sm">Turnamen</p>
+                                <p class="text-xs text-gray-600">Daftar kompetisi</p>
+                            </button>
+                            <button data-page="marketplace" class="bg-purple-50 p-4 rounded-lg text-center hover:bg-purple-100">
+                                <svg class="w-8 h-8 text-purple-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                                <p class="font-medium text-gray-900 text-sm">Shop</p>
+                                <p class="text-xs text-gray-600">Beli equipment</p>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tournaments -->
+                    <div class="bg-gray-50">
+                        <div class="px-4 py-3 bg-white border-b border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-semibold text-gray-900">Turnamen Mendatang</h3>
+                                <button class="text-sm text-orange-500 font-medium">Lihat Semua</button>
+                            </div>
+                        </div>
+                        ${tournamentsContent}
+                    </div>
+
+                    <!-- Venues -->
+                    <div class="bg-gray-50">
+                        <div class="px-4 py-3 bg-white border-b border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-semibold text-gray-900">Venue Terdekat</h3>
+                                <button class="text-sm text-orange-500 font-medium">Lihat Semua</button>
+                            </div>
+                        </div>
+                        ${venuesContent}
+                    </div>
+                `;
+            }
+
+            function renderPTMPage() {
+                const myClub = db.clubs.find(c => c.id === db.currentUser.clubId);
+                const otherClubs = db.clubs.filter(c => c.id !== db.currentUser.clubId);
+                const upcomingMatches = db.interClubMatches.filter(m => m.status === 'scheduled' || m.status === 'registration_open');
+
+                return `
+                    <!-- Header -->
+                    <header class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <svg class="w-6 h-6 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                <h1 class="text-xl font-bold text-gray-900">Clubs & PTM</h1>
+                            </div>
+                            <button data-page="addClub" class="bg-orange-500 text-white text-sm px-3 py-2 rounded-lg font-medium">+ Tambah PTM</button>
+                        </div>
+                        <div class="bg-gray-100 rounded-lg px-4 py-3 flex items-center">
+                            <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" placeholder="Cari klub berdasarkan kota..." class="bg-transparent text-gray-600 text-sm flex-1 outline-none">
+                        </div>
+                    </header>
+
+                    ${myClub ? `
+                    <!-- My Club -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-900 mb-3">Klub Saya</h3>
+                        <div data-page="clubDetail" data-id="${myClub.id}" class="bg-orange-50 p-4 rounded-lg border border-orange-200 cursor-pointer hover:bg-orange-100">
+                            <div class="flex items-center mb-3">
+                                <img src="${myClub.logo}" class="w-16 h-16 rounded-full mr-4 border-2 border-orange-500">
+                                <div class="flex-1">
+                                    <p class="font-bold text-gray-900">${myClub.name}</p>
+                                    <p class="text-sm text-gray-600">${myClub.city}, ${myClub.province}</p>
+                                    <p class="text-xs text-orange-600">Member sejak 2024 • ${db.currentUser.clubRole}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-lg font-bold text-orange-600">#${myClub.teamRanking}</p>
+                                    <p class="text-xs text-gray-500">Ranking</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3 text-center text-sm">
+                                <div><p class="font-bold text-gray-900">${myClub.members}</p><p class="text-gray-600">Members</p></div>
+                                <div><p class="font-bold text-gray-900">${myClub.recentMatches}</p><p class="text-gray-600">Matches</p></div>
+                                <div><p class="font-bold text-gray-900">${myClub.winRate}%</p><p class="text-gray-600">Win Rate</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Inter Club Matches -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center mb-3">
+                            <svg class="w-6 h-6 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                            </svg>
+                            <h3 class="font-semibold text-gray-900">Pertandingan Antar Klub</h3>
+                        </div>
+                        <div class="space-y-3">
+                            ${upcomingMatches.map(match => {
+                                const homeClub = db.clubs.find(c => c.id === match.homeClub);
+                                const awayClub = db.clubs.find(c => c.id === match.awayClub);
+                                return `
+                                    <div data-page="interClubMatch" data-id="${match.id}" class="bg-gray-50 p-4 rounded-lg cursor-pointer border border-gray-200 hover:bg-gray-100">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="font-medium text-gray-900">${match.name}</h4>
+                                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${match.status === 'scheduled' ? 'Terjadwal' : 'Buka'}</span>
+                                        </div>
+                                        ${homeClub && awayClub ? `
+                                        <div class="flex items-center justify-center mb-2">
+                                            <div class="text-center">
+                                                <img src="${homeClub.logo}" class="w-8 h-8 rounded-full mx-auto mb-1">
+                                                <p class="text-xs font-medium">${homeClub.shortName}</p>
+                                            </div>
+                                            <span class="mx-4 text-gray-500 font-bold">VS</span>
+                                            <div class="text-center">
+                                                <img src="${awayClub.logo}" class="w-8 h-8 rounded-full mx-auto mb-1">
+                                                <p class="text-xs font-medium">${awayClub.shortName}</p>
+                                            </div>
+                                        </div>
+                                        ` : ''}
+                                        <div class="text-center text-sm text-gray-600">
+                                            <p>?? ${match.date} • ${match.time}</p>
+                                            <p>?? ${match.venue}</p>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Other Clubs -->
+                    <div class="bg-gray-50">
+                        <div class="px-4 py-3 bg-white border-b border-gray-100">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                                </svg>
+                                <h3 class="font-semibold text-gray-900">Klub Lainnya</h3>
+                            </div>
+                        </div>
+                        ${otherClubs.map(club => `
+                            <div data-page="clubDetail" data-id="${club.id}" class="bg-white p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50">
+                                <div class="flex items-center">
+                                    <img src="${club.logo}" class="w-12 h-12 rounded-full mr-3">
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <p class="font-medium text-gray-900">${club.name} ${club.verified ? '?' : ''}</p>
+                                            <span class="text-sm text-gray-600">#${club.teamRanking}</span>
+                                        </div>
+                                        <p class="text-sm text-gray-600">${club.city}, ${club.province}</p>
+                                        <div class="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                                            <span>?? ${club.members}</span>
+                                            <span>?? ${club.winRate}%</span>
+                                            <span>? ${club.rating}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            function renderMarketplacePage() {
+                const categories = [
+                    { name: 'Bat', icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-5-10V3a1 1 0 011-1h1a1 1 0 011 1v1M5 7a4 4 0 118 0v1H5V7z"/></svg>` },
+                    { name: 'Bola', icon: `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z"/></svg>` },
+                    { name: 'Sepatu', icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 4v12l-4 2-4-2V4M8 4l4-2 4 2"/></svg>` },
+                    { name: 'Pakaian', icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>` },
+                    { name: 'Meja', icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>` },
+                    { name: 'Lainnya', icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>` }
+                ];
+
+                const listings = db.marketplace.map(item => `
+                    <div data-page="marketplaceDetail" data-id="${item.id}" class="bg-white p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50">
+                        <div class="flex">
+                            <img src="${item.photo}" class="w-20 h-20 rounded-lg object-cover mr-3">
+                            <div class="flex-1">
+                                <div class="flex items-start justify-between mb-1">
+                                    <h3 class="font-medium text-gray-900">${item.name}</h3>
+                                    <span class="text-xs text-gray-500">${item.postedDate}</span>
+                                </div>
+                                <p class="text-lg font-bold text-orange-600 mb-1">Rp ${item.price.toLocaleString('id-ID')}</p>
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">${item.condition}</span>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">${item.status}</span>
+                                </div>
+                                <p class="text-sm text-gray-600 flex items-center">
+                                    <span class="mr-1">??</span> ${item.location}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                    <!-- Header -->
+                    <header class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <h1 class="text-xl font-bold text-gray-900">Marketplace</h1>
+                            <div class="flex items-center space-x-2">
+                                <button class="bg-gray-100 text-gray-700 p-2 rounded-lg">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                                    </svg>
+                                </button>
+                                <button class="bg-orange-500 text-white p-2 rounded-lg">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bg-gray-100 rounded-lg px-4 py-3 flex items-center">
+                            <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" placeholder="Cari produk..." class="bg-transparent text-gray-600 text-sm flex-1 outline-none">
+                        </div>
+                    </header>
+
+                    <!-- Categories -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-900 mb-3">Kategori</h3>
+                        <div class="grid grid-cols-3 gap-3">
+                            ${categories.map(cat => `
+                                <button class="bg-gray-50 p-3 rounded-lg text-center hover:bg-gray-100 transition-colors">
+                                    <div class="text-gray-600 mb-1 flex justify-center">${cat.icon}</div>
+                                    <p class="text-sm font-medium text-gray-700">${cat.name}</p>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Listings -->
+                    <div class="bg-gray-50">
+                        <div class="px-4 py-3 bg-white border-b border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-semibold text-gray-900">Produk Terbaru (${db.marketplace.length})</h3>
+                                <button class="text-sm text-orange-500 font-medium">Sort</button>
+                            </div>
+                        </div>
+                        ${listings}
+                    </div>
+                `;
+            }
+
+            function renderProfilePage(user) {
+                const isMyProfile = user.id === db.currentUser.id;
+                const userClub = db.clubs.find(c => c.id === user.clubId);
+                
+                return `
+                    <!-- Header -->
+                    <header class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center justify-between">
+                            ${!isMyProfile ? '<button class="nav-back p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>' : '<span></span>'}
+                            <h1 class="text-xl font-bold text-gray-900">Profile</h1>
+                            <button class="p-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </header>
+
+                    <!-- Profile Info -->
+                    <div class="bg-white p-6 text-center border-b border-gray-100">
+                        <div class="relative inline-block mb-4">
+                            <img src="${user.photo}" class="w-24 h-24 rounded-full">
+                            ${user.online ? '<span class="absolute bottom-2 right-2 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></span>' : ''}
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">${user.name}</h2>
+                        <div class="flex items-center justify-center text-gray-600 mb-3">
+                            <span class="mr-4">?? ${user.location}</span>
+                            <span>? ${user.elo}</span>
+                        </div>
+                        <div class="flex items-center justify-center space-x-2 mb-3">
+                            <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">${user.skill}</span>
+                            <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">${user.style}</span>
+                        </div>
+                        ${userClub ? `
+                        <div class="bg-orange-50 p-3 rounded-lg border border-orange-200 mb-3">
+                            <div class="flex items-center justify-center">
+                                <img src="${userClub.logo}" class="w-6 h-6 rounded-full mr-2">
+                                <span class="text-orange-800 font-medium">${userClub.name}</span>
+                                <span class="ml-2 text-orange-600 text-sm">(${user.clubRole})</span>
+                            </div>
+                        </div>
+                        ` : ''}
+                        ${!isMyProfile ? `
+                        <div class="flex space-x-3 mt-4">
+                            <button class="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg font-medium">Message</button>
+                            <button class="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg font-medium">Challenge</button>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-900 mb-3">Statistics</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center bg-gray-50 p-3 rounded-lg">
+                                <p class="text-2xl font-bold text-gray-900">${user.stats.matches}</p>
+                                <p class="text-sm text-gray-600">Total Matches</p>
+                            </div>
+                            <div class="text-center bg-gray-50 p-3 rounded-lg">
+                                <p class="text-2xl font-bold text-gray-900">${user.stats.winRate}%</p>
+                                <p class="text-sm text-gray-600">Win Rate</p>
+                            </div>
+                            <div class="text-center bg-gray-50 p-3 rounded-lg">
+                                <p class="text-2xl font-bold text-gray-900">${user.stats.clubMatches || 0}</p>
+                                <p class="text-sm text-gray-600">Club Matches</p>
+                            </div>
+                            <div class="text-center bg-gray-50 p-3 rounded-lg">
+                                <p class="text-2xl font-bold text-gray-900">${user.stats.tournaments}</p>
+                                <p class="text-sm text-gray-600">Tournaments</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Equipment -->
+                    ${user.equipment ? `
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-900 mb-3">Equipment</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Blade:</span>
+                                <span class="text-gray-900 font-medium">${user.equipment.blade}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Forehand:</span>
+                                <span class="text-gray-900 font-medium">${user.equipment.rubberFH}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Backhand:</span>
+                                <span class="text-gray-900 font-medium">${user.equipment.rubberBH}</span>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Achievements -->
+                    ${user.achievements ? `
+                    <div class="bg-white p-4">
+                        <h3 class="font-semibold text-gray-900 mb-3">Achievements</h3>
+                        <div class="space-y-3">
+                            ${user.achievements.map(achievement => `
+                                <div class="flex items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                    <span class="text-2xl mr-3">${achievement.icon}</span>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">${achievement.name}</p>
+                                        <p class="text-sm text-gray-600">${achievement.date}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
+            }
+
+            function renderTournamentDetailPage(tournament) {
+                return `
+                    <!-- Header -->
+                    <header class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center">
+                            <button class="nav-back mr-4 p-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <h1 class="text-lg font-bold text-gray-900 truncate">${tournament.name}</h1>
+                        </div>
+                    </header>
+
+                    <!-- Tournament Info -->
+                    <div class="bg-white p-6">
+                        <div class="text-center mb-6">
+                            <svg class="w-16 h-16 text-yellow-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                            </svg>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-2">${tournament.name}</h2>
+                            <p class="text-orange-600 text-lg font-bold">Total Prize: Rp ${tournament.prize.toLocaleString('id-ID')}</p>
+                        </div>
+
+                        <!-- Progress -->
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm text-gray-600">Pendaftar</span>
+                                <span class="text-sm font-medium">${tournament.participants}/${tournament.maxParticipants}</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="bg-orange-500 h-3 rounded-full" style="width: ${(tournament.participants / tournament.maxParticipants * 100)}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Details -->
+                        <div class="space-y-4 mb-6">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V6a2 2 0 012-2h4a2 2 0 012 2v1m-6 0h8m-8 0H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2"/>
+                                </svg>
+                                <span class="text-gray-900">${tournament.date}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span class="text-gray-900">${tournament.location}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">${tournament.category}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                                </svg>
+                                <span class="text-gray-900 font-medium">Rp ${tournament.fee.toLocaleString('id-ID')}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                <span class="text-gray-900">${tournament.organizer}</span>
+                            </div>
+                        </div>
+
+                        ${tournament.schedule ? `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-900 mb-3">Jadwal Pertandingan</h3>
+                            <div class="space-y-2">
+                                ${tournament.schedule.map(schedule => `
+                                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                        <span class="text-gray-900 font-medium">${schedule.round}</span>
+                                        <span class="text-gray-600">${schedule.time}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <!-- Register Button -->
+                        <button class="w-full py-4 ${tournament.status === 'Full' ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'} text-white font-bold rounded-lg transition-colors">
+                            ${tournament.status === 'Full' ? 'TOURNAMENT PENUH' : 'DAFTAR SEKARANG'}
+                        </button>
+                    </div>
+                `;
+            }
+
+            function renderMarketplaceDetailPage(item) {
+                const seller = db.users.find(u => u.id === item.sellerId);
+                return `
+                    <!-- Header -->
+                    <header class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center">
+                            <button class="nav-back mr-4 p-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <h1 class="text-lg font-bold text-gray-900 truncate">${item.name}</h1>
+                        </div>
+                    </header>
+
+                    <!-- Product Images -->
+                    <div class="bg-gray-200 relative">
+                        <img src="${item.images[0]}" class="w-full h-64 object-contain">
+                        <div class="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white text-xs px-3 py-1 rounded-full">
+                            1 / ${item.images.length}
+                        </div>
+                    </div>
+
+                    <!-- Product Info -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <h2 class="text-2xl font-bold text-orange-600 mb-2">Rp ${item.price.toLocaleString('id-ID')}</h2>
+                        <div class="flex items-center space-x-2 mb-3">
+                            <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">${item.status}</span>
+                            <span class="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">${item.condition}</span>
+                            <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">${item.category}</span>
+                        </div>
+                        <p class="text-gray-600 text-sm">?? ${item.location}</p>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-900 mb-3">Deskripsi</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Brand:</span>
+                                <span class="text-gray-900 font-medium">${item.description.brand}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Model:</span>
+                                <span class="text-gray-900 font-medium">${item.description.model}</span>
+                            </div>
+                            <div class="pt-2 border-t border-gray-100">
+                                <p class="text-gray-800 leading-relaxed">${item.description.notes}</p>
+                            </div>
+                            <div class="pt-2 border-t border-gray-100">
+                                <p class="text-gray-600 font-medium mb-1">Lokasi COD:</p>
+                                <p class="text-gray-800">${item.description.meetingPoint}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seller Info -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-900 mb-3">Penjual</h3>
+                        <div data-page="profileDetail" data-id="${seller.id}" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
+                            <div class="flex items-center">
+                                <div class="relative mr-3">
+                                    <img src="${seller.photo}" class="w-12 h-12 rounded-full">
+                                    ${seller.online ? '<span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>' : ''}
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">${seller.name}</p>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <div class="flex text-yellow-400 mr-2">
+                                            ${Array.from({length: 5}, (_, i) => 
+                                                `<span class="${i < Math.floor(seller.rating) ? 'text-yellow-400' : 'text-gray-300'}">?</span>`
+                                            ).join('')}
+                                        </div>
+                                        <span>(${seller.reviews} ulasan)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="text-orange-500 text-sm font-medium">Lihat Profile ?</button>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="bg-white p-4 sticky bottom-0 border-t border-gray-100">
+                        <div class="flex space-x-3">
+                            <button class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium">?? Wishlist</button>
+                            <button data-page="chatConversation" data-id="${seller.id}" data-item-id="${item.id}" class="flex-1 bg-orange-500 text-white py-3 rounded-lg font-medium">?? Chat Penjual</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderChatConversationPage(user) {
+                const item = state.activeMarketplaceItem;
+                
+                return `
+                    <!-- Header -->
+                    <header class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center">
+                            <button class="nav-back mr-4 p-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <div class="relative mr-3">
+                                <img src="${user.photo}" class="w-10 h-10 rounded-full">
+                                ${user.online ? '<span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>' : ''}
+                            </div>
+                            <div class="flex-1">
+                                <h1 class="text-lg font-bold text-gray-900">${user.name}</h1>
+                                <p class="text-sm text-gray-600">${user.online ? 'Online sekarang' : user.lastActive}</p>
+                            </div>
+                        </div>
+                    </header>
+
+                    ${item ? `
+                    <!-- Item Context -->
+                    <div class="bg-blue-50 p-3 border-b border-gray-100 flex items-center">
+                        <img src="${item.photo}" class="w-10 h-10 rounded-lg mr-3">
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-900 text-sm">${item.name}</p>
+                            <p class="text-orange-600 text-sm font-bold">Rp ${item.price.toLocaleString('id-ID')}</p>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Messages -->
+                    <div class="flex-1 bg-gray-50 p-4 space-y-4">
+                        <div class="flex justify-start">
+                            <div class="bg-white p-3 rounded-2xl rounded-bl-lg max-w-xs border border-gray-200">
+                                <p class="text-gray-800 text-sm">Halo! Barangnya masih tersedia?</p>
+                                <p class="text-xs text-gray-500 mt-1">10:30</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-end">
+                            <div class="bg-orange-500 text-white p-3 rounded-2xl rounded-br-lg max-w-xs">
+                                <p class="text-sm">Masih dong! Kondisinya bagus kok.</p>
+                                <p class="text-xs text-orange-200 mt-1">10:32</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-start">
+                            <div class="bg-white p-3 rounded-2xl rounded-bl-lg max-w-xs border border-gray-200">
+                                <p class="text-gray-800 text-sm">Boleh liat foto detailnya? Dan harga bisa nego ga?</p>
+                                <p class="text-xs text-gray-500 mt-1">10:35</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-end">
+                            <div class="bg-orange-500 text-white p-3 rounded-2xl rounded-br-lg max-w-xs">
+                                <p class="text-sm">Foto detail:</p>
+                                ${item ? `<img src="${item.images[1]}" class="mt-2 rounded-lg w-full">` : ''}
+                                <p class="text-sm mt-2">Harga masih bisa dinego kok, tawar aja.</p>
+                                <p class="text-xs text-orange-200 mt-1">10:38</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input -->
+                    <div class="bg-white p-4 border-t border-gray-100">
+                        <div class="flex items-center space-x-3">
+                            <button class="text-gray-500 p-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                            </button>
+                            <input type="text" placeholder="Tulis pesan..." class="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm outline-none">
+                            <button class="bg-orange-500 text-white p-2 rounded-full">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderVenueDetailPage(venue) {
+                return `
+                    <!-- Header -->
+                    <header class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center">
+                            <button class="nav-back mr-4 p-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <h1 class="text-lg font-bold text-gray-900 truncate">${venue.name}</h1>
+                        </div>
+                    </header>
+
+                    <!-- Venue Image -->
+                    <div class="relative">
+                        <img src="${venue.photo}" class="w-full h-48 object-cover">
+                        <div class="absolute bottom-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm">
+                            ${venue.distance}km dari Anda
+                        </div>
+                    </div>
+
+                    <!-- Venue Info -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900 mb-1">${venue.name}</h2>
+                                <div class="flex items-center mb-2">
+                                    <div class="flex text-yellow-400 text-sm mr-2">
+                                        ${Array.from({length: 5}, (_, i) => 
+                                            `<span class="${i < Math.floor(venue.rating) ? 'text-yellow-400' : 'text-gray-300'}">?</span>`
+                                        ).join('')}
+                                    </div>
+                                    <span class="text-sm text-gray-600">(${venue.reviews} ulasan)</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-bold text-orange-600">Rp ${venue.price.toLocaleString('id-ID')}</p>
+                                <p class="text-sm text-gray-600">${venue.priceUnit}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4 text-sm text-gray-600">
+                            <span>?? ${venue.tables} meja</span>
+                            <span>?? ${venue.type}</span>
+                            <span>? ${venue.openHours}</span>
+                        </div>
+                    </div>
+
+                    <!-- Facilities -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-900 mb-3">Fasilitas</h3>
+                        <div class="flex flex-wrap gap-2">
+                            ${venue.facilities.map(facility => `
+                                <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">${facility}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Contact Info -->
+                    ${venue.address ? `
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-900 mb-3">Informasi Kontak</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span>${venue.address}</span>
+                            </div>
+                            ${venue.phone ? `
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                </svg>
+                                <span>${venue.phone}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Actions -->
+                    <div class="bg-white p-4 sticky bottom-0">
+                        <div class="flex space-x-3">
+                            <button class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium">?? Hubungi</button>
+                            <button class="flex-1 bg-orange-500 text-white py-3 rounded-lg font-medium">?? Booking</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderClubDetailPage(club) {
+                const isMyClub = club.id === db.currentUser.clubId;
+                const clubMembers = db.users.filter(u => u.clubId === club.id);
+
+                return `
+                    <!-- Header -->
+                    <header class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center">
+                            <button class="nav-back mr-4 p-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <h1 class="text-lg font-bold text-gray-900 truncate">${club.name}</h1>
+                        </div>
+                    </header>
+
+                    <!-- Club Info -->
+                    <div class="bg-white p-6 text-center border-b border-gray-100">
+                        <img src="${club.logo}" class="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-orange-500">
+                        <h2 class="text-xl font-bold text-gray-900 mb-1">${club.name}</h2>
+                        <p class="text-gray-600 mb-2">${club.city}, ${club.province}</p>
+                        <div class="flex items-center justify-center space-x-4 text-sm mb-3">
+                            <span>? ${club.rating} (${club.reviews} ulasan)</span>
+                            ${club.verified ? '<span class="text-blue-500">? Verified</span>' : ''}
+                        </div>
+                        ${!isMyClub ? `<button class="bg-orange-500 text-white px-6 py-2 rounded-lg font-medium">Join Club</button>` : ''}
+                    </div>
+
+                    <!-- Photo Gallery -->
+                    <div class="bg-white border-b border-gray-100">
+                        <div class="px-4 py-3 border-b border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    <h3 class="font-semibold text-gray-900">Foto Klub</h3>
+                                </div>
+                                <span class="text-sm text-gray-500">${club.photos ? club.photos.length : 0} foto</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="grid grid-cols-2 gap-3">
+                                ${club.photos ? club.photos.map((photo, index) => `
+                                    <div class="cursor-pointer group">
+                                        <img src="${photo}" class="w-full h-32 rounded-lg object-cover border border-gray-200 group-hover:border-orange-500 transition-colors" alt="Foto klub ${index + 1}">
+                                    </div>
+                                `).join('') : ''}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location & Map -->
+                    <div class="bg-white border-b border-gray-100">
+                        <div class="px-4 py-3 border-b border-gray-100">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <h3 class="font-semibold text-gray-900">Lokasi & Peta</h3>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <!-- Map Preview -->
+                            <div class="bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg h-48 mb-4 flex items-center justify-center relative overflow-hidden cursor-pointer hover:from-blue-200 hover:to-blue-300 transition-colors">
+                                <div class="absolute inset-0 bg-blue-500 opacity-10"></div>
+                                <div class="text-center text-blue-700 z-10">
+                                    <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                                    </svg>
+                                    <p class="text-sm font-medium">Google Maps</p>
+                                    <p class="text-xs">Tap untuk buka lokasi</p>
+                                </div>
+                                <!-- Location pin -->
+                                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                    <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            
+                            <!-- Address Info -->
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="flex items-start mb-3">
+                                    <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <div>
+                                        <p class="font-medium text-gray-900">${club.address}</p>
+                                        <p class="text-sm text-gray-600">${club.city}, ${club.province}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button class="bg-blue-500 text-white text-sm py-2 px-3 rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                                        </svg>
+                                        Buka Maps
+                                    </button>
+                                    <button class="bg-white text-gray-700 border border-gray-300 text-sm py-2 px-3 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                                        </svg>
+                                        Bagikan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center mb-3">
+                            <svg class="w-6 h-6 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <h3 class="font-semibold text-gray-900">Statistik Klub</h3>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center bg-gray-50 p-3 rounded-lg">
+                                <p class="text-lg font-bold text-gray-900">${club.members}</p>
+                                <p class="text-sm text-gray-600">Total Members</p>
+                            </div>
+                            <div class="text-center bg-gray-50 p-3 rounded-lg">
+                                <p class="text-lg font-bold text-gray-900">#${club.teamRanking}</p>
+                                <p class="text-sm text-gray-600">National Rank</p>
+                            </div>
+                            <div class="text-center bg-gray-50 p-3 rounded-lg">
+                                <p class="text-lg font-bold text-gray-900">${club.recentMatches}</p>
+                                <p class="text-sm text-gray-600">Recent Matches</p>
+                            </div>
+                            <div class="text-center bg-gray-50 p-3 rounded-lg">
+                                <p class="text-lg font-bold text-gray-900">${club.winRate}%</p>
+                                <p class="text-sm text-gray-600">Win Rate</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- About -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center mb-3">
+                            <svg class="w-6 h-6 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <h3 class="font-semibold text-gray-900">Tentang Klub</h3>
+                        </div>
+                        <p class="text-gray-700 text-sm leading-relaxed mb-3">${club.description}</p>
+                        <p class="text-xs text-gray-500">Didirikan: ${club.established}</p>
+                    </div>
+
+                    <!-- Facilities -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center mb-3">
+                            <svg class="w-6 h-6 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <h3 class="font-semibold text-gray-900">Fasilitas</h3>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            ${club.facilities.map(facility => `<span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">${facility}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Members -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center mb-3">
+                            <svg class="w-6 h-6 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                            </svg>
+                            <h3 class="font-semibold text-gray-900">Members (${clubMembers.length})</h3>
+                        </div>
+                        <div class="space-y-3">
+                            ${clubMembers.map(member => `
+                                <div class="flex items-center">
+                                    <img src="${member.photo}" class="w-10 h-10 rounded-full mr-3">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">${member.name}</p>
+                                        <p class="text-sm text-gray-600">${member.clubRole} • ? ${member.elo}</p>
+                                    </div>
+                                    <span class="text-xs bg-gray-100 px-2 py-1 rounded-full">${member.skill}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Contact -->
+                    <div class="bg-white p-4">
+                        <div class="flex items-center mb-3">
+                            <svg class="w-6 h-6 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            <h3 class="font-semibold text-gray-900">Kontak</h3>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span>${club.address}</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                </svg>
+                                <span>${club.contact.phone}</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                <span>${club.contact.email}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderAddClubPage() {
+                return `
+                    <!-- Header -->
+                    <header class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center">
+                            <button class="nav-back mr-4 p-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <h1 class="text-xl font-bold text-gray-900">Tambah PTM Baru</h1>
+                        </div>
+                    </header>
+
+                    <!-- Form -->
+                    <div class="bg-white p-4 space-y-6">
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-3">?? Informasi Dasar</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Klub/PTM</label>
+                                    <input type="text" placeholder="Jakarta Pingpong Club" class="w-full p-3 border border-gray-300 rounded-lg text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Singkat</label>
+                                    <input type="text" placeholder="JPC" class="w-full p-3 border border-gray-300 rounded-lg text-sm">
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Provinsi</label>
+                                        <select class="w-full p-3 border border-gray-300 rounded-lg text-sm">
+                                            <option>Pilih Provinsi</option>
+                                            <option>DKI Jakarta</option>
+                                            <option>Jawa Barat</option>
+                                            <option>Jawa Tengah</option>
+                                            <option>Jawa Timur</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Kota</label>
+                                        <input type="text" placeholder="Jakarta" class="w-full p-3 border border-gray-300 rounded-lg text-sm">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-3">?? Lokasi</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Alamat Lengkap</label>
+                                    <textarea placeholder="Jl. Sudirman No. 123, Jakarta Pusat" class="w-full p-3 border border-gray-300 rounded-lg text-sm h-20 resize-none"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Wilayah/Region</label>
+                                    <input type="text" placeholder="Jakarta Pusat" class="w-full p-3 border border-gray-300 rounded-lg text-sm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-3">??? Detail Klub</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Didirikan</label>
+                                    <input type="number" placeholder="2020" class="w-full p-3 border border-gray-300 rounded-lg text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Deskripsi Klub</label>
+                                    <textarea placeholder="Deskripsikan klub, visi misi..." class="w-full p-3 border border-gray-300 rounded-lg text-sm h-24 resize-none"></textarea>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah Member</label>
+                                        <input type="number" placeholder="50" class="w-full p-3 border border-gray-300 rounded-lg text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah Pelatih</label>
+                                        <input type="number" placeholder="3" class="w-full p-3 border border-gray-300 rounded-lg text-sm">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-3">?? Kontak</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Telepon</label>
+                                    <input type="tel" placeholder="021-1234567" class="w-full p-3 border border-gray-300 rounded-lg text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                    <input type="email" placeholder="info@klubtt.com" class="w-full p-3 border border-gray-300 rounded-lg text-sm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="nav-back w-full bg-orange-500 text-white font-bold py-3 rounded-lg">Daftarkan PTM</button>
+                    </div>
+                `;
+            }
+
+            function renderInterClubMatchPage(match) {
+                const homeClub = db.clubs.find(c => c.id === match.homeClub);
+                const awayClub = db.clubs.find(c => c.id === match.awayClub);
+
+                return `
+                    <!-- Header -->
+                    <header class="bg-white p-4 border-b border-gray-100">
+                        <div class="flex items-center">
+                            <button class="nav-back mr-4 p-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <h1 class="text-lg font-bold text-gray-900 truncate">${match.name}</h1>
+                        </div>
+                    </header>
+
+                    <!-- Match Info -->
+                    <div class="bg-white p-6 text-center border-b border-gray-100">
+                        <svg class="w-16 h-16 text-yellow-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                        </svg>
+                        <h2 class="text-xl font-bold text-gray-900 mb-4">${match.name}</h2>
+                        
+                        ${homeClub && awayClub ? `
+                        <div class="flex items-center justify-center mb-6">
+                            <div class="text-center">
+                                <img src="${homeClub.logo}" class="w-16 h-16 rounded-full mx-auto mb-2 border-2 border-blue-500">
+                                <p class="font-bold text-gray-900">${homeClub.shortName}</p>
+                                <p class="text-sm text-gray-600">${homeClub.city}</p>
+                                <p class="text-xs text-blue-600">Rank #${homeClub.teamRanking}</p>
+                            </div>
+                            <div class="mx-8">
+                                <div class="text-3xl font-bold text-gray-400">VS</div>
+                            </div>
+                            <div class="text-center">
+                                <img src="${awayClub.logo}" class="w-16 h-16 rounded-full mx-auto mb-2 border-2 border-red-500">
+                                <p class="font-bold text-gray-900">${awayClub.shortName}</p>
+                                <p class="text-sm text-gray-600">${awayClub.city}</p>
+                                <p class="text-xs text-red-600">Rank #${awayClub.teamRanking}</p>
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div><p class="text-gray-600">Tanggal</p><p class="font-medium">?? ${match.date}</p></div>
+                                <div><p class="text-gray-600">Waktu</p><p class="font-medium">? ${match.time}</p></div>
+                                <div><p class="text-gray-600">Venue</p><p class="font-medium">?? ${match.venue}</p></div>
+                                <div><p class="text-gray-600">Format</p><p class="font-medium">?? ${match.format}</p></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="bg-white p-4 border-b border-gray-100">
+                        <h3 class="font-semibold text-gray-900 mb-3">?? Deskripsi</h3>
+                        <p class="text-gray-700 text-sm leading-relaxed">${match.description}</p>
+                        ${match.prize ? `
+                        <div class="mt-4 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                            <div class="flex items-center justify-center">
+                                <div class="text-2xl mr-2">??</div>
+                                <div class="text-center">
+                                    <p class="font-medium text-yellow-800">Total Prize</p>
+                                    <p class="text-lg font-bold text-yellow-600">Rp ${match.prize.toLocaleString('id-ID')}</p>
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="bg-white p-4 sticky bottom-0">
+                        <button class="w-full py-3 ${match.status === 'scheduled' ? 'bg-blue-500' : 'bg-orange-500'} text-white font-bold rounded-lg">
+                            ${match.status === 'scheduled' ? '?? Tonton Live' : '?? Daftar Klub'}
+                        </button>
+                    </div>
+                `;
+            }
+
+            // =================================================================
+            // 4. EVENT LISTENERS & NAVIGATION
+            // =================================================================
+            
+            function addEventListeners() {
+                // Navigation bottom bar
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const pageId = btn.dataset.page;
+                        navigateTo(pageId);
+                    });
+                });
+
+                // Detail page navigation
+                document.querySelectorAll('[data-page]').forEach(el => {
+                    if (el.classList.contains('nav-btn')) return;
+
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const pageId = el.dataset.page;
+                        const detailId = parseInt(el.dataset.id);
+                        const itemId = parseInt(el.dataset.itemId);
+                        let detailData;
+
+                        // Set active marketplace item for chat context
+                        if (itemId) {
+                            state.activeMarketplaceItem = db.marketplace.find(item => item.id === itemId);
+                        } else if (pageId !== 'chatConversation') {
+                            state.activeMarketplaceItem = null;
+                        }
+
+                        switch(pageId) {
+                            case 'profileDetail':
+                                detailData = db.users.find(item => item.id === detailId);
+                                break;
+                            case 'tournamentDetail':
+                                detailData = db.tournaments.find(item => item.id === detailId);
+                                break;
+                            case 'marketplaceDetail':
+                                detailData = db.marketplace.find(item => item.id === detailId);
+                                break;
+                            case 'chatConversation':
+                                detailData = db.users.find(item => item.id === detailId);
+                                if (el.dataset.itemId) {
+                                    const marketplaceItemId = parseInt(el.dataset.itemId);
+                                    state.activeMarketplaceItem = db.marketplace.find(item => item.id === marketplaceItemId);
+                                }
+                                break;
+                            case 'venueDetail':
+                                detailData = db.venues.find(item => item.id === detailId);
+                                break;
+                            case 'clubDetail':
+                                detailData = db.clubs.find(item => item.id === detailId);
+                                break;
+                            case 'interClubMatch':
+                                detailData = db.interClubMatches.find(item => item.id === detailId);
+                                break;
+                        }
+                        
+                        navigateTo(pageId, detailData);
+                    });
+                });
+                
+                // Back button navigation
+                document.querySelectorAll('.nav-back').forEach(btn => {
+                    btn.addEventListener('click', navigateBack);
+                });
+            }
+
+            function navigateTo(pageId, data = null) {
+                if (state.currentPage === pageId && state.detailData === data) return;
+
+                const mainPages = ['home', 'discover', 'play', 'ptm', 'profile'];
+                
+                // Save current state to history if navigating from main page to detail page
+                if (!mainPages.includes(state.currentPage)) {
+                     state.history.push({ page: state.currentPage, data: state.detailData });
+                } else if (!mainPages.includes(pageId)) {
+                     state.history.push({ page: state.currentPage, data: null });
+                }
+                
+                // Reset history if navigating to main pages
+                if (mainPages.includes(pageId)) {
+                    state.history = [{page: pageId, data: null}];
+                }
+
+                state.currentPage = pageId;
+                state.detailData = data;
+                renderApp();
+                
+                // Scroll to top
+                document.getElementById('main-content').scrollTop = 0;
+            }
+            
+            function navigateBack() {
+                if (state.history.length > 1) {
+                    state.history.pop(); // Remove current state
+                    const prevState = state.history[state.history.length - 1];
+                    state.currentPage = prevState.page;
+                    state.detailData = prevState.data;
+                    renderApp();
+                }
+            }
+
+            // =================================================================
+            // 5. INITIALIZATION
+            // =================================================================
+            
+            // Initialize app
+            renderApp();
+        });
+    </script>
+</body>
+</html
